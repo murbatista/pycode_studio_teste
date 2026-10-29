@@ -87,6 +87,80 @@
       #pycode-login-error { color:#fca5a5; margin-top:10px; font-size:14px; }
     </style>
 
+
+<style>
+/* Tema claro do PyCode Studio */
+html[data-theme="light"] body {
+    background-color: #f3f4f6 !important;
+    color: #1f2937 !important;
+}
+
+html[data-theme="light"] header {
+    background-color: #e5e7eb !important;
+    border-color: #d1d5db !important;
+}
+
+html[data-theme="light"] .bg-vscode-bg,
+html[data-theme="light"] .bg-vscode-editor,
+html[data-theme="light"] .bg-vscode-terminal {
+    background-color: #ffffff !important;
+}
+
+html[data-theme="light"] .bg-vscode-sidebar,
+html[data-theme="light"] .bg-vscode-activity,
+html[data-theme="light"] .bg-vscode-tabInactive {
+    background-color: #e5e7eb !important;
+}
+
+html[data-theme="light"] .text-vscode-text {
+    color: #1f2937 !important;
+}
+
+html[data-theme="light"] .border-vscode-border {
+    border-color: #d1d5db !important;
+}
+
+html[data-theme="light"] .text-gray-400,
+html[data-theme="light"] .text-gray-500 {
+    color: #4b5563 !important;
+}
+
+html[data-theme="light"] textarea,
+html[data-theme="light"] input,
+html[data-theme="light"] select {
+    background-color: #ffffff !important;
+    color: #1f2937 !important;
+    border-color: #d1d5db !important;
+}
+
+html[data-theme="light"] #terminal-output {
+    background-color: #ffffff !important;
+    color: #15803d !important;
+}
+
+html[data-theme="light"] #terminal-input::placeholder {
+    color: #6b7280 !important;
+}
+
+html[data-theme="light"] #terminal-output + form {
+    background-color: #f9fafb !important;
+    border-color: #d1d5db !important;
+}
+
+html[data-theme="light"] #terminal-output + form button {
+    color: #1f2937 !important;
+}
+
+html[data-theme="light"] ::-webkit-scrollbar-track {
+    background: #f3f4f6;
+}
+
+html[data-theme="light"] ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+}
+</style>
+
+
 </head>
 <body class="bg-vscode-bg text-vscode-text font-sans h-screen flex flex-col overflow-hidden select-none">
 
@@ -106,14 +180,26 @@
                 <button onclick="setActiveTab('quiz-write')" class="hover:text-white transition">Quizz de escrita</button>
             </div>
         </div>
-        <div class="flex items-center space-x-3 text-gray-400">
-            <span class="bg-vscode-activity px-2.5 py-0.5 rounded text-[11px] text-green-400 border border-green-800 flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Simulador Python
-            </span>
-            <button onclick="runPythonCode()" class="bg-green-700 hover:bg-green-600 text-white px-3 py-1 rounded text-xs flex items-center gap-1.5 transition font-medium shadow-sm">
-                <i class="fas fa-play text-[10px]"></i> Executar (Ctrl+Enter)
-            </button>
-        </div>
+        
+<div class="flex items-center space-x-3 text-gray-400">
+    <span class="bg-vscode-activity px-2.5 py-0.5 rounded text-[11px] text-green-400 border border-green-800 flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Simulador Python
+    </span>
+
+    <button
+        id="theme-toggle"
+        onclick="toggleTheme()"
+        class="bg-vscode-activity hover:bg-vscode-border text-white px-3 py-1 rounded text-xs flex items-center gap-1.5 transition"
+        title="Alternar tema claro/escuro">
+        <i id="theme-icon" class="fas fa-sun"></i>
+        <span id="theme-label">Modo claro</span>
+    </button>
+
+    <button onclick="runPythonCode()" class="bg-green-700 hover:bg-green-600 text-white px-3 py-1 rounded text-xs flex items-center gap-1.5 transition font-medium shadow-sm">
+        <i class="fas fa-play text-[10px]"></i> Executar (Ctrl+Enter)
+    </button>
+</div>
+
     </header>
 
     <div id="file-menu" class="hidden absolute top-9 left-40 z-50 bg-vscode-sidebar border border-vscode-border shadow-xl rounded p-2 text-xs space-y-1">
@@ -649,7 +735,7 @@ print(x // y)</pre>
                 monacoEditor = monaco.editor.create(host, {
                     value: fallback.value,
                     language: 'python',
-                    theme: 'vs-dark',
+                    theme: document.documentElement.getAttribute('data-theme') === 'light' ? 'vs' : 'vs-dark',
                     automaticLayout: true,
                     fontFamily: "'Fira Code', Consolas, monospace",
                     fontSize: 13,
@@ -1672,5 +1758,45 @@ print(x // y)</pre>
   });
 })();
 </script>
+    
+<script>
+(function () {
+    const savedTheme = localStorage.getItem('pycode-theme') || 'dark';
+
+    function applyTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+
+        const icon = document.getElementById('theme-icon');
+        const label = document.getElementById('theme-label');
+
+        if (icon) {
+            icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        }
+
+        if (label) {
+            label.textContent = theme === 'dark' ? 'Modo claro' : 'Modo escuro';
+        }
+
+        localStorage.setItem('pycode-theme', theme);
+    }
+
+    window.toggleTheme = function () {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+    applyTheme(newTheme);
+
+    if (typeof monaco !== 'undefined' && monaco.editor) {
+        monaco.editor.setTheme(newTheme === 'light' ? 'vs' : 'vs-dark');
+    }
+};
+
+    applyTheme(savedTheme);
+    if (typeof monaco !== 'undefined' && monaco.editor) {
+    monaco.editor.setTheme(savedTheme === 'light' ? 'vs' : 'vs-dark');
+}
+})();
+</script>
+
 </body>
 </html>
