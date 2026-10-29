@@ -219,14 +219,16 @@ async def tutor(payload: TutorRequest, _auth: None = Depends(require_login)) -> 
         answer = await asyncio.to_thread(call_model)
         return {"answer": answer}
     except Exception as exc:
+        print(f"Erro na API Gemini: {type(exc).__name__}: {exc}", flush=True)
         raise HTTPException(
             status_code=502,
             detail=(
-                "O Gemini não conseguiu responder. Verifique a chave, "
-                "o nome do modelo e os limites de uso da API. "
+                "O Gemini não conseguiu responder. "
+                "Consulte os logs do servidor para identificar a causa. "
                 f"Erro: {type(exc).__name__}"
             ),
         ) from exc
+
 
 
 
