@@ -1623,5 +1623,55 @@ print(x // y)</pre>
             loadWriteChallenge();
         };
     </script>
+
+<!-- Login do PyCode Studio -->
+<div id="pycode-login" style="display:none; position:fixed; inset:0; z-index:99999; background:#0b0f0c; color:#e8f5e9; align-items:center; justify-content:center; font-family:Arial,sans-serif;">
+  <form id="pycode-login-form" style="width:min(360px,90%); padding:28px; border:1px solid #276749; border-radius:12px; background:#111814;">
+    <h2 style="color:#4ade80; margin-top:0;">PyCode Studio</h2>
+    <p>Digite a senha de acesso para continuar.</p>
+    <input id="pycode-login-password" type="password" placeholder="Senha de acesso" autocomplete="current-password" required style="box-sizing:border-box; width:100%; padding:12px; margin:10px 0; border-radius:6px; border:1px solid #276749; background:#0b0f0c; color:white;">
+    <button type="submit" style="width:100%; padding:12px; border:0; border-radius:6px; background:#22c55e; color:#06210e; font-weight:bold; cursor:pointer;">Entrar</button>
+    <p id="pycode-login-message" role="alert" style="color:#fca5a5;"></p>
+  </form>
+</div>
+
+<script>
+(function () {
+  const screen = document.getElementById('pycode-login');
+  const form = document.getElementById('pycode-login-form');
+  const password = document.getElementById('pycode-login-password');
+  const message = document.getElementById('pycode-login-message');
+
+  if (!screen || !form) return;
+
+  screen.style.display = 'flex';
+
+  form.addEventListener('submit', async function (event) {
+    event.preventDefault();
+    message.textContent = 'Verificando acesso...';
+
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: password.value })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || 'Não foi possível entrar.');
+      }
+
+      screen.style.display = 'none';
+      password.value = '';
+      window.location.reload();
+    } catch (error) {
+      message.textContent = error.message || 'Erro de conexão com o servidor.';
+    }
+  });
+})();
+</script>
 </body>
 </html>
