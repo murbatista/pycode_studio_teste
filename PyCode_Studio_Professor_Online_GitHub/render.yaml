@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: pycode-studio
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYCODE_ACCESS_PASSWORD
+        generateValue: true
+      - key: PYCODE_SESSION_SECRET
+        generateValue: true
+      - key: PYCODE_HTTPS_ONLY
+        value: "true"
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-5.5
