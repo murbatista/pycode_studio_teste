@@ -2,3 +2,4 @@ Flask
 gunicorn
 uvicorn
 python-dotenv
+fastapi
