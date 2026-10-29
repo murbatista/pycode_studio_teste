@@ -144,8 +144,8 @@ def health() -> dict[str, Any]:
     return {
         "ok": True,
         "pythonVersion": sys.version.split()[0],
-        "aiConfigured": bool(os.getenv("OPENAI_API_KEY", "").strip()),
-        "model": os.getenv("OPENAI_MODEL", "gpt-5.5"),
+        "aiConfigured": bool(os.getenv("GEMINI_API_KEY", "").strip()),
+        "model": os.getenv("GEMINI_MODEL", "gemini-3.8-flash"),
     }
 
 
@@ -163,42 +163,71 @@ def check_syntax(payload: CodeRequest, _auth: None = Depends(require_login)) -> 
         }
 
 
+
 @app.post("/api/tutor")
 async def tutor(payload: TutorRequest, _auth: None = Depends(require_login)) -> dict[str, str]:
-    api_key = os.getenv("OPENAI_API_KEY", "").strip()
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+
     if not api_key:
         raise HTTPException(
             status_code=503,
-            detail="A IA ainda não foi configurada. Adicione uma chave de API autorizada ao arquivo .env local; não coloque chaves no HTML.",
+            detail="A chave GEMINI_API_KEY não está configurada no Render."
         )
-    try:
-        from openai import OpenAI
-    except ImportError as exc:
-        raise HTTPException(status_code=503, detail="Instale as dependências do aplicativo com iniciar.bat.") from exc
 
-    prompt = build_tutor_prompt(payload.mode, payload.question, payload.code, payload.error)
+    try:
+        from google import genai
+        from google.genai import types
+    except ImportError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="A biblioteca google-genai não está instalada. Confira o requirements.txt."
+        ) from exc
+
+    prompt = build_tutor_prompt(
+        payload.mode,
+        payload.question,
+        payload.code,
+        payload.error,
+    )
 
     def call_model() -> str:
-        client = OpenAI(api_key=api_key)
-        response = client.responses.create(
-            model=os.getenv("OPENAI_MODEL", "gpt-5.5"),
-            instructions=(
-                "Você é o Tutor PyCode Studio, um professor de Python paciente e preciso. "
-                "Responda em português do Brasil, com linguagem acessível a iniciantes. "
-                "Use títulos curtos, exemplos pequenos e blocos de código quando necessário. "
-                "Seja honesto sobre incertezas. Nunca solicite segredos, senhas ou chaves de API."
+        client = genai.Client(api_key=api_key)
+
+        response = client.models.generate_content(
+            model=os.getenv("GEMINI_MODEL", "gemini-3.8-flash"),
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                system_instruction=(
+                    "Você é o Tutor PyCode Studio, um professor de Python "
+                    "paciente e preciso. Responda em português do Brasil, "
+                    "com linguagem acessível a iniciantes. Use títulos curtos, "
+                    "exemplos pequenos e blocos de código quando necessário. "
+                    "Seja honesto sobre incertezas. Nunca solicite senhas "
+                    "ou chaves de API."
+                ),
+                max_output_tokens=1800,
             ),
-            input=prompt,
-            max_output_tokens=1800,
         )
-        return response.output_text
+
+        answer = response.text
+        if not answer:
+            raise ValueError("O Gemini retornou uma resposta vazia.")
+
+        return answer
 
     try:
         answer = await asyncio.to_thread(call_model)
         return {"answer": answer}
     except Exception as exc:
-        # Keep implementation details and provider responses out of the UI.
-        raise HTTPException(status_code=502, detail=f"O provedor de IA não respondeu. Confira a chave, o modelo e a conexão. ({type(exc).__name__})") from exc
+        raise HTTPException(
+            status_code=502,
+            detail=(
+                "O Gemini não conseguiu responder. Verifique a chave, "
+                "o nome do modelo e os limites de uso da API. "
+                f"Erro: {type(exc).__name__}"
+            ),
+        ) from exc
+
 
 
 @app.post("/api/tests")
