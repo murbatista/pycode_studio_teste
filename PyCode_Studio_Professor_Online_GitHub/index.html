@@ -1833,7 +1833,8 @@ print(x // y)</pre>
         // Initialize App on Page Load
         window.onload = function() {
             document.getElementById('current-filename').innerText = currentFile;
-            document.getElementById('code-editor').value = virtualFiles[currentFile] || '';
+            document.getElementById('code-editor').value = '';
+            clearTerminal();
             updateLineNumbers();
             refreshFileExplorer();
             addExtraDocs();
