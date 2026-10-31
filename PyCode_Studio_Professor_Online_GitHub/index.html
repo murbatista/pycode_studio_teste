@@ -896,12 +896,16 @@ print(x // y)</pre>
                 host.classList.remove('hidden');
                 fallback.classList.add('hidden');
                 document.getElementById('line-numbers').classList.add('hidden');
-                monacoEditor.onDidChangeModelContent(() => {
-                    fallback.value = monacoEditor.getValue();
-                    virtualFiles[currentFile] = fallback.value;
-                    persistVirtualFiles();
-                    updateStatusFromEditor();
-                });
+               monacoEditor.onDidChangeModelContent(() => {
+    fallback.value = monacoEditor.getValue();
+
+    if (editorHasOpenFile) {
+        virtualFiles[currentFile] = fallback.value;
+        persistVirtualFiles();
+    }
+
+    updateStatusFromEditor();
+});
                 monacoEditor.onDidChangeCursorPosition(updateStatusFromEditor);
                 monacoEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => runPythonCode());
                 monacoEditor.focus();
@@ -1012,20 +1016,57 @@ print(x // y)</pre>
                 socket.send(JSON.stringify({ type: 'input', text: text + '\n' }));
             } else showNotification('Execute um programa que esteja aguardando input() para enviar uma entrada.');
         }
-        async function runPythonCode() {
-            const code = getEditorValue(); virtualFiles[currentFile] = code;
-            await executePythonCode(code, 'terminal-output');
+      async function runPythonCode() {
+    if (!editorHasOpenFile) {
+        showNotification('Abra um arquivo antes de executar o código.');
+        return;
+    }
+
+    const code = getEditorValue();
+    virtualFiles[currentFile] = code;
+    persistVirtualFiles();
+
+    await executePythonCode(code, 'terminal-output');
+}
+       async function checkPythonSyntax() {
+    if (!editorHasOpenFile) {
+        showNotification('Abra um arquivo antes de verificar a sintaxe.');
+        return;
+    }
+
+    const code = getEditorValue();
+
+    if (!localBackendAvailable) {
+        try {
+            new Function(code);
+            showNotification('A verificação Python precisa do aplicativo local.');
+        } catch (_) {
+            showNotification('Abra o aplicativo local para verificar sintaxe Python.');
         }
-        async function checkPythonSyntax() {
-            const code = getEditorValue();
-            if (!localBackendAvailable) { try { new Function(code); showNotification('A verificação Python precisa do aplicativo local.'); } catch (_) { showNotification('Abra o aplicativo local para verificar sintaxe Python.'); } return; }
-            try {
-                const response = await fetch('/api/check', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code}) });
-                const data = await response.json();
-                if (data.ok) { lastPythonError = ''; showNotification('Sintaxe Python válida.'); }
-                else { lastPythonError = data.error || 'Erro de sintaxe'; showNotification(lastPythonError); document.getElementById('terminal-output').innerText = lastPythonError; }
-            } catch (error) { showNotification('Não foi possível verificar a sintaxe: ' + error.message); }
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/check', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({code})
+        });
+
+        const data = await response.json();
+
+        if (data.ok) {
+            lastPythonError = '';
+            showNotification('Sintaxe Python válida.');
+        } else {
+            lastPythonError = data.error || 'Erro de sintaxe';
+            showNotification(lastPythonError);
+            document.getElementById('terminal-output').innerText = lastPythonError;
         }
+    } catch (error) {
+        showNotification('Não foi possível verificar a sintaxe: ' + error.message);
+    }
+}
         async function runAutomatedChecks() {
             if (!localBackendAvailable) { showNotification('Abra o aplicativo pelo iniciar.bat para executar os testes automatizados.'); return; }
             const output = document.getElementById('terminal-output'); output.innerText = 'Executando testes automatizados do PyCode Studio…\n';
@@ -1683,11 +1724,31 @@ if (editorHasOpenFile && active) {
 virtualFiles[name] = '';
             refreshFileExplorer(); switchFile(name); document.getElementById('file-menu').classList.add('hidden');
         }
-        function removeCurrentFile() {
-            if (Object.keys(virtualFiles).length <= 1) { showNotification('Mantenha pelo menos um arquivo no projeto.'); return; }
-            if (!confirm('Remover ' + currentFile + ' do projeto atual?')) return;
-            delete virtualFiles[currentFile]; currentFile = Object.keys(virtualFiles)[0]; refreshFileExplorer(); switchFile(currentFile); persistVirtualFiles();
-        }
+       function removeCurrentFile() {
+    if (!editorHasOpenFile) {
+        showNotification('Abra um arquivo antes de removê-lo.');
+        return;
+    }
+
+    if (Object.keys(virtualFiles).length <= 1) {
+        showNotification('Mantenha pelo menos um arquivo no projeto.');
+        return;
+    }
+
+    if (!confirm('Remover ' + currentFile + ' do projeto atual?')) return;
+
+    delete virtualFiles[currentFile];
+
+    currentFile = Object.keys(virtualFiles)[0];
+    editorHasOpenFile = false;
+
+    document.getElementById('current-filename').innerText = 'Nenhum arquivo aberto';
+    setEditorValue('');
+
+    refreshFileExplorer();
+    persistVirtualFiles();
+    showNotification('Arquivo removido do projeto.');
+}
        async function saveCurrentFile() {
     if (!editorHasOpenFile) {
         showNotification('Abra um arquivo antes de salvar.');
