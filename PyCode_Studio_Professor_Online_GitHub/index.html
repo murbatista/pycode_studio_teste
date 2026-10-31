@@ -357,8 +357,8 @@ html[data-theme="light"] .tab-content [class~="text-gray-300"] {
                 <button onclick="setActiveTab('docs')" id="nav-docs" title="Dicas e Documentação Python" class="nav-btn text-gray-500 p-2.5 flex justify-center hover:text-white transition">
                     <i class="fas fa-book-open text-lg"></i>
                 </button>
-                <button onclick="setActiveTab('videos')" id="nav-videos" title="Aulas com IA & Voz" class="nav-btn text-gray-500 p-2.5 flex justify-center hover:text-white transition">
-                    <i class="fas fa-video text-lg"></i>
+                <button onclick="setActiveTab('ia')" id="nav-ia" title="Tutor de Python com IA" class="nav-btn p-2.5 flex justify-center hover:text-white transition text-vscode-accent border-l-2 border-vscode-blue">
+                    <i class="fas fa-robot text-lg"></i>
                 </button>
                 <button onclick="setActiveTab('quiz')" id="nav-quiz" title="Quiz de Múltipla Escolha (+300 Questões)" class="nav-btn text-gray-500 p-2.5 flex justify-center hover:text-white transition">
                     <i class="fas fa-list-check text-lg"></i>
@@ -569,29 +569,6 @@ resultado = somar(5, 10)</pre>
                         </div>
                     </div>
                     <p class="text-xs text-gray-500 mt-4">A linguagem Python possui bibliotecas e recursos externos demais para caber literalmente em uma lista finita. Esta referência reúne comandos centrais da linguagem e exemplos pesquisáveis.</p>
-                </div>
-            </section>
-
-            <!-- 3. TAB: EXPLICAÇÕES DE PYTHON COM LEITURA POR VOZ -->
-            <section id="tab-videos" class="tab-content flex-1 hidden p-6 overflow-y-auto bg-vscode-bg">
-                <div class="max-w-5xl mx-auto space-y-6">
-                    <div class="border-b border-vscode-border pb-4">
-                        <h2 class="text-2xl font-bold text-white flex items-center gap-2"><i class="fas fa-brain text-vscode-accent"></i> Videoaulas e Explicações com IA</h2>
-                        <p class="text-gray-400 text-sm mt-2">Não há vídeos gravados nesta aba. Pesquise qualquer função, palavra-chave, método ou módulo Python, leia a explicação e peça ao navegador para narrá-la.</p>
-                    </div>
-                    <div class="bg-vscode-sidebar border border-vscode-border rounded-xl p-4 space-y-3">
-                        <label for="video-search" class="block text-xs font-semibold text-gray-300">Pesquisar na referência Python</label>
-                        <div class="flex flex-col sm:flex-row gap-2">
-                            <input id="video-search" oninput="searchPythonReference('video-search','video-reference-results')" onkeydown="if(event.key==='Enter') searchPythonReference('video-search','video-reference-results')" type="search" placeholder="Ex.: type, input, list.append, asyncio, exceções..." class="flex-1 bg-vscode-terminal border border-vscode-border text-white text-sm rounded-lg px-3 py-3 focus:outline-none focus:border-vscode-blue">
-                            <button onclick="searchPythonReference('video-search','video-reference-results')" class="bg-vscode-blue hover:bg-vscode-accent text-white px-4 py-2 rounded-lg text-sm"><i class="fas fa-search mr-1"></i> Pesquisar</button>
-                        </div>
-                        <p class="text-xs text-gray-500">A pesquisa inclui funções nativas, palavras-chave, métodos comuns e módulos da biblioteca padrão. A referência oficial contém os detalhes completos e atualizados.</p>
-                    </div>
-                    <div id="video-reference-results" class="space-y-3" aria-live="polite"><p class="text-sm text-gray-500">Digite um termo para encontrar uma explicação.</p></div>
-                    <div class="bg-vscode-sidebar border border-vscode-border rounded-xl p-4 flex flex-wrap gap-3 items-center justify-between">
-                        <div><h3 class="font-semibold text-white text-sm">Leitura em voz alta</h3><p class="text-xs text-gray-400 mt-1">Usa a síntese de voz disponível no navegador. A voz e a disponibilidade dependem do sistema.</p></div>
-                        <div class="flex gap-2"><button onclick="stopExplanationSpeech()" class="voice-action text-white"><i class="fas fa-stop mr-1"></i> Parar leitura</button><button onclick="openOfficialPythonDocs()" class="voice-action text-white"><i class="fas fa-book-open mr-1"></i> Documentação oficial</button></div>
-                    </div>
                 </div>
             </section>
 
