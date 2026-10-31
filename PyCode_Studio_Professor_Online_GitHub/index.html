@@ -308,6 +308,7 @@ html[data-theme="light"] .tab-content [class~="text-gray-300"] {
             <div class="hidden md:flex space-x-3 text-gray-400">
                 <button onclick="toggleFileMenu()" class="hover:text-white transition">Arquivo ▾</button>
                 <button onclick="setActiveTab('editor')" class="hover:text-white transition">Editar</button>
+                <button onclick="setActiveTab('ia')" class="hover:text-white transition">IA</button>
                 <button onclick="setActiveTab('docs')" class="hover:text-white transition">Documentação</button>
                 <button onclick="setActiveTab('voice')" class="hover:text-white transition">Voz</button>
                 <button onclick="setActiveTab('quiz')" class="hover:text-white transition">Quizz de alternativa</button>
@@ -587,21 +588,60 @@ resultado = somar(5, 10)</pre>
                         <p class="text-xs text-gray-500">A pesquisa inclui funções nativas, palavras-chave, métodos comuns e módulos da biblioteca padrão. A referência oficial contém os detalhes completos e atualizados.</p>
                     </div>
                     <div id="video-reference-results" class="space-y-3" aria-live="polite"><p class="text-sm text-gray-500">Digite um termo para encontrar uma explicação.</p></div>
-                    <div class="bg-vscode-sidebar border border-vscode-blue rounded-xl p-4 space-y-3">
-                        <div class="flex flex-wrap items-center justify-between gap-2"><div><h3 class="font-semibold text-white"><i class="fas fa-robot text-vscode-accent mr-2"></i>Tutor de Python com IA</h3><p class="text-xs text-gray-400 mt-1">Explique o código, entenda erros e receba sugestões linha a linha.</p></div><span id="ai-status" class="text-xs text-yellow-300">Verificando conexão local…</span></div>
-                        <label for="ai-question" class="block text-xs text-gray-300">O que você quer entender?</label>
-                        <textarea id="ai-question" rows="2" class="w-full bg-vscode-terminal border border-vscode-border text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-vscode-blue" placeholder="Ex.: explique este código linha por linha, encontre o erro ou mostre uma forma mais simples."></textarea>
-                        <label class="flex items-start gap-2 text-xs text-gray-400"><input id="ai-send-code" type="checkbox" checked class="mt-0.5"> Enviar o código atual e o último erro ao tutor para contextualizar a resposta.</label>
-                        <div class="flex flex-wrap gap-2"><button onclick="askPythonTutor('explain')" class="bg-vscode-blue hover:bg-vscode-accent text-white px-3 py-2 rounded text-xs"><i class="fas fa-list-ol mr-1"></i> Explicar linha a linha</button><button onclick="askPythonTutor('debug')" class="bg-vscode-activity hover:bg-vscode-border text-white px-3 py-2 rounded text-xs"><i class="fas fa-bug mr-1"></i> Encontrar erros</button><button onclick="askPythonTutor('question')" class="bg-vscode-activity hover:bg-vscode-border text-white px-3 py-2 rounded text-xs"><i class="fas fa-comment-dots mr-1"></i> Perguntar</button><button onclick="speakTutorAnswer()" class="bg-vscode-activity hover:bg-vscode-border text-white px-3 py-2 rounded text-xs"><i class="fas fa-volume-up mr-1"></i> Ler resposta</button></div>
-                        <div id="ai-tutor-output" class="hidden bg-[#181818] border border-vscode-border rounded-lg p-3 text-sm text-gray-200 whitespace-pre-wrap" aria-live="polite"></div>
-                        <p class="text-[11px] text-gray-500">Privacidade: se você configurar uma chave de API, o texto da pergunta e, quando marcado, o código/erro serão enviados ao provedor de IA. A chave fica no arquivo local .env, nunca no HTML.</p>
-                    </div>
                     <div class="bg-vscode-sidebar border border-vscode-border rounded-xl p-4 flex flex-wrap gap-3 items-center justify-between">
                         <div><h3 class="font-semibold text-white text-sm">Leitura em voz alta</h3><p class="text-xs text-gray-400 mt-1">Usa a síntese de voz disponível no navegador. A voz e a disponibilidade dependem do sistema.</p></div>
                         <div class="flex gap-2"><button onclick="stopExplanationSpeech()" class="voice-action text-white"><i class="fas fa-stop mr-1"></i> Parar leitura</button><button onclick="openOfficialPythonDocs()" class="voice-action text-white"><i class="fas fa-book-open mr-1"></i> Documentação oficial</button></div>
                     </div>
                 </div>
             </section>
+
+            <!-- ABA: TUTOR DE PYTHON COM IA -->
+<section id="tab-ia" class="tab-content flex-1 hidden p-6 overflow-y-auto bg-vscode-bg">
+    <div class="max-w-5xl mx-auto space-y-6">
+        <div class="border-b border-vscode-border pb-4">
+            <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+                <i class="fas fa-robot text-vscode-accent"></i>
+                Tutor de Python com IA
+            </h2>
+            <p class="text-gray-400 text-sm mt-2">
+                Explique seu código, encontre erros e tire dúvidas de programação.
+            </p>
+        </div>
+
+       <div class="bg-vscode-sidebar border border-vscode-blue rounded-xl p-4 space-y-3">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+        <div>
+            <h3 class="font-semibold text-white">
+                <i class="fas fa-robot text-vscode-accent mr-2"></i>
+                Tutor de Python com IA
+            </h3>
+            <p class="text-xs text-gray-400 mt-1">Explique o código, entenda erros e receba sugestões linha a linha.</p>
+        </div>
+        <span id="ai-status" class="text-xs text-yellow-300">Verificando conexão local…</span>
+    </div>
+
+    <label for="ai-question" class="block text-xs text-gray-300">O que você quer entender?</label>
+    <textarea id="ai-question" rows="2" class="w-full bg-vscode-terminal border border-vscode-border text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-vscode-blue" placeholder="Ex.: explique este código linha por linha, encontre o erro ou mostre uma forma mais simples."></textarea>
+
+    <label class="flex items-start gap-2 text-xs text-gray-400">
+        <input id="ai-send-code" type="checkbox" checked class="mt-0.5">
+        Enviar o código atual e o último erro ao tutor para contextualizar a resposta.
+    </label>
+
+    <div class="flex flex-wrap gap-2">
+        <button onclick="askPythonTutor('explain')" class="bg-vscode-blue hover:bg-vscode-accent text-white px-3 py-2 rounded text-xs"><i class="fas fa-list-ol mr-1"></i> Explicar linha a linha</button>
+        <button onclick="askPythonTutor('debug')" class="bg-vscode-activity hover:bg-vscode-border text-white px-3 py-2 rounded text-xs"><i class="fas fa-bug mr-1"></i> Encontrar erros</button>
+        <button onclick="askPythonTutor('question')" class="bg-vscode-activity hover:bg-vscode-border text-white px-3 py-2 rounded text-xs"><i class="fas fa-comment-dots mr-1"></i> Perguntar</button>
+        <button onclick="speakTutorAnswer()" class="bg-vscode-activity hover:bg-vscode-border text-white px-3 py-2 rounded text-xs"><i class="fas fa-volume-up mr-1"></i> Ler resposta</button>
+    </div>
+
+    <div id="ai-tutor-output" class="hidden bg-[#181818] border border-vscode-border rounded-lg p-3 text-sm text-gray-200 whitespace-pre-wrap" aria-live="polite"></div>
+
+    <p class="text-[11px] text-gray-500">Privacidade: se você configurar uma chave de API, o texto da pergunta e, quando marcado, o código/erro serão enviados ao provedor de IA. A chave fica no arquivo local .env, nunca no HTML.</p>
+</div>
+
+    </div>
+</section>
 
             <!-- 4. TAB: QUIZ DE MÚLTIPLA ESCOLHA -->
             <section id="tab-quiz" class="tab-content flex-1 hidden p-6 overflow-y-auto bg-vscode-bg">
