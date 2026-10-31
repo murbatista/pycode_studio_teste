@@ -769,6 +769,7 @@ print(x // y)</pre>
             'exercicios.py': '# Exercício: Verificador de número par\nnumero = 10\nif numero % 2 == 0:\n    print(f"{numero} é PAR")\nelse:\n    print(f"{numero} é ÍMPAR")'
         };
         let currentFile = 'main.py';
+        let editorHasOpenFile = false;
         const PROJECT_STORAGE_KEY = 'pycode-studio-files-v2';
         function persistVirtualFiles() {
             try { localStorage.setItem(PROJECT_STORAGE_KEY, JSON.stringify({ currentFile, files: virtualFiles })); }
@@ -817,14 +818,22 @@ print(x // y)</pre>
             if (monacoEditor && monacoEditor.getValue() !== text) monacoEditor.setValue(text);
             updateLineNumbers();
         }
-        function switchFile(filename) {
-            if (!Object.prototype.hasOwnProperty.call(virtualFiles, filename)) return;
-            virtualFiles[currentFile] = getEditorValue();
-            currentFile = filename;
-            document.getElementById('current-filename').innerText = filename;
-            setEditorValue(virtualFiles[filename] || '');
-            refreshFileExplorer(); persistVirtualFiles();
-        }
+       function switchFile(filename) {
+    if (!Object.prototype.hasOwnProperty.call(virtualFiles, filename)) return;
+
+    if (editorHasOpenFile) {
+        virtualFiles[currentFile] = getEditorValue();
+    }
+
+    currentFile = filename;
+    editorHasOpenFile = true;
+
+    document.getElementById('current-filename').innerText = filename;
+    setEditorValue(virtualFiles[filename] || '');
+
+    refreshFileExplorer();
+    persistVirtualFiles();
+}
 
         // Sincronização do editor. Monaco cuida de numeração, indentação e edição quando carregado.
         let monacoEditor = null;
@@ -867,7 +876,7 @@ print(x // y)</pre>
                 const host = document.getElementById('monaco-editor');
                 const fallback = document.getElementById('code-editor');
                 monacoEditor = monaco.editor.create(host, {
-                    value: fallback.value,
+                    value: '',
                     language: 'python',
                     theme: document.documentElement.getAttribute('data-theme') === 'light' ? 'vs' : 'vs-dark',
                     automaticLayout: true,
@@ -1658,14 +1667,20 @@ print(x // y)</pre>
                 item.append(ico, document.createTextNode(' ' + name)); item.onclick = () => switchFile(name); list.appendChild(item);
             });
             const active = document.getElementById('file-' + currentFile.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9_-]/g,'-'));
-            if (active) active.classList.add('bg-vscode-bg','text-white','border-l-2','border-vscode-blue');
+
+if (editorHasOpenFile && active) {
+    active.classList.add('bg-vscode-bg','text-white','border-l-2','border-vscode-blue');
+}
         }
         function newUserFile() {
             let name = prompt('Nome do novo arquivo (ex.: main.py):', 'novo_arquivo.py'); if (!name) return;
             name = name.trim().replace(/[\\/:*?"<>|]/g, '_'); if (!name) return;
             if (!/\.[a-zA-Z0-9]{1,8}$/.test(name)) name += '.py';
             if (Object.prototype.hasOwnProperty.call(virtualFiles, name)) { showNotification('Já existe um arquivo com esse nome.'); return; }
-            virtualFiles[currentFile] = getEditorValue(); virtualFiles[name] = '';
+            if (editorHasOpenFile) {
+    virtualFiles[currentFile] = getEditorValue();
+}
+virtualFiles[name] = '';
             refreshFileExplorer(); switchFile(name); document.getElementById('file-menu').classList.add('hidden');
         }
         function removeCurrentFile() {
@@ -1673,9 +1688,15 @@ print(x // y)</pre>
             if (!confirm('Remover ' + currentFile + ' do projeto atual?')) return;
             delete virtualFiles[currentFile]; currentFile = Object.keys(virtualFiles)[0]; refreshFileExplorer(); switchFile(currentFile); persistVirtualFiles();
         }
-        async function saveCurrentFile() {
-            virtualFiles[currentFile] = getEditorValue(); persistVirtualFiles();
-            const content = virtualFiles[currentFile];
+       async function saveCurrentFile() {
+    if (!editorHasOpenFile) {
+        showNotification('Abra um arquivo antes de salvar.');
+        return;
+    }
+
+    virtualFiles[currentFile] = getEditorValue();
+    persistVirtualFiles();
+    const content = virtualFiles[currentFile];
             try {
                 if (window.showSaveFilePicker) {
                     const handle = await window.showSaveFilePicker({ suggestedName: currentFile, types: [{ description: 'Arquivo de texto/código', accept: { 'text/plain': ['.' + (currentFile.split('.').pop() || 'py')] } }] });
@@ -1832,7 +1853,8 @@ print(x // y)</pre>
         }
         // Initialize App on Page Load
         window.onload = function() {
-            document.getElementById('current-filename').innerText = currentFile;
+            editorHasOpenFile = false;
+            document.getElementById('current-filename').innerText = 'Nenhum arquivo aberto';
             document.getElementById('code-editor').value = '';
             clearTerminal();
             updateLineNumbers();
