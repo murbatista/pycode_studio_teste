@@ -1406,6 +1406,7 @@ persistVirtualFiles();
             document.getElementById('quiz-question-text').innerText = q.question;
             document.getElementById('quiz-code-block').innerText = q.code;
             const container = document.getElementById('quiz-options-container');
+            container.style.pointerEvents = 'auto';
             container.innerHTML = '';
             const feedback = document.getElementById('quiz-feedback');
             feedback.className = 'p-3 rounded text-xs hidden';
@@ -1437,20 +1438,26 @@ persistVirtualFiles();
                 document.getElementById('quiz-try-btn').classList.add('hidden');
                 document.querySelectorAll('#quiz-options-container button').forEach(b => b.disabled = true);
             } else {
-                quizStreak = 0;
-                feedback.classList.add('bg-red-900/50','text-red-300','border','border-red-700');
-                feedback.textContent = 'Resposta incorreta. Tente novamente ou pule a questão. ' + q.explanation;
-                document.getElementById('quiz-try-btn').classList.remove('hidden');
-                document.getElementById('quiz-skip-btn').disabled = false;
-                document.getElementById('quiz-skip-btn').classList.remove('hidden');
-                document.querySelectorAll('#quiz-options-container button')[index].disabled = true;
-            }
+    quizStreak = 0;
+    feedback.classList.add('bg-red-900/50','text-red-300','border','border-red-700');
+    feedback.textContent = 'Resposta incorreta. Tente novamente ou pule a questão. ' + q.explanation;
+
+    document.getElementById('quiz-try-btn').classList.remove('hidden');
+    document.getElementById('quiz-skip-btn').disabled = false;
+    document.getElementById('quiz-skip-btn').classList.remove('hidden');
+
+    document.getElementById('quiz-next-btn').disabled = true;
+    document.getElementById('quiz-options-container').style.pointerEvents = 'none';
+
+    document.querySelectorAll('#quiz-options-container button').forEach(b => b.disabled = true);
+}
             document.getElementById('quiz-score').innerText = quizScore;
             document.getElementById('quiz-streak').innerText = quizStreak;
         }
         function retryQuizQuestion() {
             document.getElementById('quiz-try-btn').classList.add('hidden');
             document.getElementById('quiz-feedback').classList.add('hidden');
+            document.getElementById('quiz-options-container').style.pointerEvents = 'auto';
             document.querySelectorAll('#quiz-options-container button').forEach(b => b.disabled = false);
         }
         function nextQuizQuestion() {
@@ -1569,6 +1576,7 @@ persistVirtualFiles();
             document.getElementById('write-challenge-id').innerText = writeCompletedCount + 1;
             document.getElementById('write-challenge-desc').innerText = c.desc;
             document.getElementById('write-quiz-input').value = '';
+            document.getElementById('write-quiz-input').disabled = false;
             document.getElementById('write-quiz-feedback').classList.add('hidden');
         }
 
@@ -1594,11 +1602,20 @@ persistVirtualFiles();
                 feedback.classList.add('bg-green-900/50', 'text-green-300', 'border', 'border-green-700');
                 feedback.innerHTML = '<strong>Parabéns!</strong> Código correto! <i class="fas fa-check"></i>';
             } else {
-                feedback.classList.add('bg-red-900/50', 'text-red-300', 'border', 'border-red-700');
-                feedback.innerHTML = '<strong>Código incorreto.</strong> Tente novamente ou pule o desafio.';
-                document.getElementById('write-try-btn').classList.remove('hidden');
-                document.getElementById('write-skip-btn').disabled = false;
-            }
+    feedback.classList.add('bg-red-900/50', 'text-red-300', 'border', 'border-red-700');
+    feedback.innerHTML = '<strong>Código incorreto.</strong> Tente novamente ou pule o desafio.';
+
+    document.getElementById('write-try-btn').classList.remove('hidden');
+    document.getElementById('write-skip-btn').disabled = false;
+
+    const verify = document.querySelector('#tab-quiz-write button[onclick="checkWriteAnswer()"]');
+    if (verify) verify.disabled = true;
+
+    const hint = document.querySelector('#tab-quiz-write button[onclick="showWriteHint()"]');
+    if (hint) hint.disabled = true;
+
+    document.getElementById('write-quiz-input').disabled = true;
+}
         }
 
         function showWriteHint() {
@@ -1607,10 +1624,22 @@ persistVirtualFiles();
         }
 
         function retryWriteChallenge() {
-            document.getElementById('write-quiz-feedback').classList.add('hidden');
-            document.getElementById('write-quiz-input').focus();
-            document.getElementById('write-try-btn').classList.add('hidden');
-        }
+    document.getElementById('write-quiz-feedback').classList.add('hidden');
+
+    const input = document.getElementById('write-quiz-input');
+    input.disabled = false;
+    input.focus();
+
+    document.getElementById('write-try-btn').classList.add('hidden');
+
+    const verify = document.querySelector('#tab-quiz-write button[onclick="checkWriteAnswer()"]');
+    if (verify) verify.disabled = false;
+
+    const hint = document.querySelector('#tab-quiz-write button[onclick="showWriteHint()"]');
+    if (hint) hint.disabled = false;
+
+    document.getElementById('write-next-btn').disabled = true;
+}
         function skipWriteChallenge() {
             if (!writeAttempted) { showNotification('Responda ao desafio ao menos uma vez antes de pular.'); return; }
             loadWriteChallenge();
