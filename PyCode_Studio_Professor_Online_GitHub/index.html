@@ -786,7 +786,17 @@ print(x // y)</pre>
                 }
             } catch (_) { /* Ignora dados locais inválidos e usa o projeto inicial. */ }
         }
-        restoreVirtualFiles();
+       restoreVirtualFiles();
+
+// Ao reiniciar a plataforma, manter somente o main.py.
+Object.keys(virtualFiles).forEach(nome => {
+    if (nome !== 'main.py') {
+        delete virtualFiles[nome];
+    }
+});
+
+currentFile = 'main.py';
+persistVirtualFiles();
 
         // Tab Switching
         function setActiveTab(tabId) {
@@ -1772,8 +1782,11 @@ virtualFiles[name] = '';
             a.href = url; a.download = currentFile; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
             document.getElementById('file-menu').classList.add('hidden'); showNotification('Download do arquivo iniciado.');
         }
-        function exportProject() {
-            virtualFiles[currentFile] = getEditorValue(); persistVirtualFiles();
+       function exportProject() {
+    if (editorHasOpenFile) {
+        virtualFiles[currentFile] = getEditorValue();
+    }
+    persistVirtualFiles();
             const project = { format: 'PyCodeStudioProject', version: 1, currentFile, files: virtualFiles };
             const blob = new Blob([JSON.stringify(project, null, 2)], {type:'application/json;charset=utf-8'});
             const url = URL.createObjectURL(blob), a = document.createElement('a'); a.href = url; a.download = 'pycode-studio-project.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
